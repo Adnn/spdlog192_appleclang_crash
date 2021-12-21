@@ -1,0 +1,24 @@
+name: example
+on: [push, workflow_dispatch]
+jobs:
+  show_crash:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-11, macos-latest]
+        cppstd: [17, 20]
+        include:
+          - os: ubuntu-latest
+            gccversion: 10
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Select GCC version on Linux.
+        if: runner.os == 'Linux'
+        run: |
+          echo "CC=gcc-${{ matrix.gccversion }}" >> $GITHUB_ENV
+          echo "CXX=g++-${{ matrix.gccversion }}" >> $GITHUB_ENV
+
+      - name: Get Conan
+        uses: turtlebrowser/get-conan@v1.0
+
+      - run: conan install --build=missing -s compiler.cppstd=${{ matrix.cppstd }} spdlog/1.9.2@
